@@ -1,355 +1,193 @@
-# LiteSRV v1.01
+# LiteSrv
 
-LiteSRV is a Windows service wrapper utility that allows you to run any program as a Windows NT service, with environment customization and extensive process management capabilities.
+[![GitHub release](https://img.shields.io/github/v/release/svtica/LiteSrv)](https://github.com/svtica/LiteSrv/releases/latest)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/svtica/LiteSrv/build-and-release.yml)](https://github.com/svtica/LiteSrv/actions)
+[![Part of LiteSuite](https://img.shields.io/badge/part%20of-LiteSuite-blue)](https://github.com/svtica/LiteSuite)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-green.svg)](LICENSE)
 
-## Important Warning
+**Lightweight Windows service wrapper for converting applications into managed Windows services.**
 
-**Modify Windows NT service settings at your own peril.**  
-Making incorrect changes can render Windows unusable.  
-If you don't know what you are doing, don't mess with services!
-
-## Quick Start Guide
-
-### Basic Setup
-
-1. Unpack the LiteSRV executables to a directory in your PATH:
-   - litesrv.exe - Main executable
-   - litesrv.dll - Core library 
-   - logger.dll - Logger library
-
-2. Create a configuration file (e.g., `C:\LITESRV\litesrv.ini`):
-   ```ini
-   [MY_SERVICE]
-   startup=C:\MYPROG\MYPROG.EXE -a -b -c xxxx yyyy zzz
-   ```
-   Always use full pathnames in the configuration file.
-
-3. Install your service:
-   ```
-   litesrv install MY_SERVICE -c C:\LITESRV\litesrv.ini
-   ```
-
-4. Start the service:
-   ```
-   net start MY_SERVICE
-   ```
-
-5. Use Control Panel | Services to set the appropriate startup mode if needed.
+LiteSrv is a utility library and executable that enables any application to run as a Windows service with proper service lifecycle management, logging, and configuration capabilities.
 
 ## Features
 
-- Run any program as a Windows NT service
-- Run programs in command-line mode
-- Configure custom environment variables
-- Map network and local drives
-- Control process execution priority
-- Configure automatic process restart
-- Multiple shutdown methods (graceful command, window message, or force kill)
-- Detailed logging capabilities
-- Desktop interaction support
-- Service installation and removal utilities
+### Service Management
+- **Application Wrapping**: Convert any executable into a Windows service
+- **Service Lifecycle**: Proper handling of start, stop, pause, and continue operations
+- **Dependency Management**: Configure service dependencies and startup order
+- **Recovery Options**: Automatic restart and recovery configuration
+
+### Configuration
+- **XML Configuration**: Flexible XML-based configuration system
+- **Runtime Parameters**: Pass arguments and environment variables to wrapped applications
+- **Working Directory**: Set custom working directories for services
+- **User Context**: Run services under specific user accounts
+
+### Monitoring & Control
+- **Process Monitoring**: Monitor wrapped application health and status
+- **Automatic Restart**: Restart failed applications automatically
+- **Resource Limits**: Configure memory and CPU limits for wrapped processes
+- **Event Logging**: Integration with Windows Event Log
+
+### Integration
+- **Command Line Tools**: Service installation, configuration, and management utilities
+- **Library Mode**: Can be integrated into other applications as a component
+- **WMI Support**: Expose service information through WMI
+- **Performance Counters**: Optional performance counter integration
 
 ## Installation
 
-Simply copy LiteSRV.exe to your desired location. No additional installation is required.
+1. Download the latest release
+2. Extract files to desired location
+3. Configure service wrapper settings
+4. Install service using provided tools
 
 ## Usage
 
-### Basic Syntax
-
-```
-LiteSRV <mode> <name> [options] <command> [program_parameters...]
-```
-
-### Modes
-
-- `cmd` - Run in command mode (creates a window)
-- `svc` - Run as NT service
-- `any` - Try service mode first, fallback to command mode
-- `install` - Install as NT service
-- `install_desktop` - Install as NT service with desktop interaction
-- `remove` - Remove NT service
-
-### Options
-
-#### Environment Options
-- `-e var=value` - Set environment variable
-- `-p path` - Set PATH environment variable
-- `-l libdir` - Set LIB environment variable
-- `-s sybase` - Set SYBASE environment variable
-- `-q sybase` - Set default PATH based on SYBASE value
-
-#### Execution Options
-- `-x priority` - Set execution priority (normal/high/real/idle)
-- `-w` - Start in new window (command mode only)
-- `-m` - Start minimized (command mode only)
-- `-y sec` - Startup delay in seconds (service mode only)
-- `-t sec` - Process status check interval (service mode only)
-
-#### Debug Options
-- `-d level` - Debug level (0/1/2)
-- `-o target` - Debug output target (filename/stdout/LOG)
-- `-c ctrlfile` - Load options from control file
-- `-h` - Display help message
-
-### Examples
-
-1. Run as command in new window:
-```
-LiteSRV cmd MyApp -w c:\apps\myapp.exe -param1 -param2
+### Basic Service Wrapping
+```cmd
+LiteSrv.exe install -name "MyService" -exe "C:\MyApp\app.exe" -args "/service"
 ```
 
-2. Install as service:
-```
-LiteSRV install MyService -c c:\config\service.conf
-```
-
-3. Run as service with environment:
-```
-LiteSRV svc MyService -e APP_HOME=c:\apps -e LOG_DIR=c:\logs c:\apps\myapp.exe
+### Advanced Configuration
+```cmd
+LiteSrv.exe install -name "MyService" -config "service.xml"
 ```
 
-### Control File Format
-
-Control files use an INI-style format with sections and key=value pairs:
-
-```ini
-[ServiceName]
-startup=c:\apps\myapp.exe
-startup_dir=c:\apps
-env=APP_HOME=c:\apps
-env=LOG_DIR=c:\logs
-debug=1
-debug_out=c:\logs\service.log
-auto_restart=yes
-restart_interval=60
-shutdown_method=command
-shutdown=c:\apps\stop.cmd
+### Service Management
+```cmd
+LiteSrv.exe start MyService
+LiteSrv.exe stop MyService
+LiteSrv.exe uninstall MyService
 ```
 
-#### Available Control File Options
+## Configuration File
 
-- `startup` - Command to run
-- `startup_dir` - Working directory
-- `env` - Environment variables (multiple allowed)
-- `debug` - Debug level (0/1/2)
-- `debug_out` - Debug output location
-- `wait` - Status check command
-- `wait_time` - Status check interval (seconds)
-- `auto_restart` - Enable automatic restart (yes/no)
-- `restart_interval` - Seconds between restart attempts
-- `shutdown_method` - Shutdown method (command/winmessage/kill)
-- `shutdown` - Shutdown command (if method=command)
-- `network_drive` - Map network drive (X=\\server\share)
-- `local_drive` - Map local drive (X=c:\path)
+Create an XML configuration file for advanced service setup:
 
-### Parameter Substitution
-
-LiteSRV supports two types of parameter substitution in commands:
-
-1. Environment Variables: Use %VARIABLE% syntax
-```
-startup=%APP_HOME%\myapp.exe
-```
-
-2. Prompted Values: Use {prompt} or {prompt:default} syntax
-```
-startup=myapp.exe -u {username} -p {-password}
-```
-Note: Adding `-` before the prompt name hides the input (for passwords)
-
-### Shutdown Methods
-
-LiteSRV supports three ways to stop a service:
-
-1. `command` - Executes a command (e.g., stop script)
-2. `winmessage` - Sends WM_CLOSE to application windows
-3. `kill` - Forces process termination (TerminateProcess)
-
-Configure using either:
-- Control file: `shutdown_method=command`
-- Command line: Not directly settable, use control file
-
-### Logging
-
-Debug output can be directed to:
-- Standard output (-o -)
-- Windows Event Log (-o LOG)
-- File (-o filename)
-
-Log levels:
-- 0: Errors only
-- 1: Errors and information
-- 2: All debug messages
-
-### Best Practices
-
-1. Always use control files for services
-2. Set appropriate shutdown methods using `shutdown_method` directive
-3. Use auto-restart for critical services
-4. Configure proper logging with -o option
-5. Test in command mode before installing as service
-6. Use desktop interaction only when necessary
-7. Always use full pathnames in configuration files
-8. Don't rely on PATH environment variable for finding executables
-9. Verify service account permissions
-10. Test shutdown behavior before deploying to production
-
-### Control File Configuration
-
-Control files use an INI-style format with sections for each service:
-
-```ini
-[ServiceName]
-startup=c:\path\to\program.exe
-startup_dir=c:\working\directory
-debug=1
-debug_out=c:\logs\service.log
-env=APP_HOME=c:\apps
-env=LOG_DIR=c:\logs
-auto_restart=yes
-restart_interval=60
-shutdown_method=command
-shutdown=c:\path\to\stop.cmd
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration>
+  <Service>
+    <n>MyCustomService</n>
+    <DisplayName>My Custom Application Service</DisplayName>
+    <Description>Custom application running as a service</Description>
+    <StartMode>Automatic</StartMode>
+  </Service>
+  <Application>
+    <Executable>C:\MyApp\app.exe</Executable>
+    <Arguments>/service /verbose</Arguments>
+    <WorkingDirectory>C:\MyApp</WorkingDirectory>
+    <Environment>
+      <Variable name="CONFIG_PATH" value="C:\MyApp\config" />
+    </Environment>
+  </Application>
+  <Recovery>
+    <EnableAutoRestart>true</EnableAutoRestart>
+    <RestartDelay>30</RestartDelay>
+    <MaxRestartAttempts>3</MaxRestartAttempts>
+  </Recovery>
+</ServiceConfiguration>
 ```
 
-### Parameter Substitution
+## Command Line Options
 
-Two types of substitutions are supported:
+```
+LiteSrv.exe <command> [options]
 
-1. Environment Variables:
-   ```
-   startup=%APP_HOME%\myapp.exe
-   ```
+Commands:
+  install         Install a new service
+  uninstall       Remove an existing service
+  start           Start a service
+  stop            Stop a service
+  restart         Restart a service
+  status          Show service status
 
-2. Runtime Prompts:
-   ```
-   startup=myapp.exe -u{username} -p{-password}
-   ```
-   Note: Adding `-` before the prompt hides input for passwords.
+Options:
+  -name <n>           Service name
+  -exe <path>            Executable to wrap
+  -args <arguments>      Command line arguments
+  -config <file>         Configuration file path
+  -user <username>       Service account username
+  -password <password>   Service account password
+  -auto                  Set automatic startup
+  -manual                Set manual startup
+  -disabled              Disable service
+```
 
-### Advanced Features
+## Technology Stack
 
-#### Service Modes
-- `cmd` - Run in command mode (creates a window)
-- `svc` - Run as NT service
-- `any` - Try service mode first, fallback to command mode
-- `install` - Install as NT service
-- `install_desktop` - Install as NT service with desktop interaction
-- `remove` - Remove NT service
+- **Platform**: Windows (C++ with .NET interop)
+- **Service APIs**: Windows Service Control Manager (SCM)
+- **Configuration**: XML with schema validation
+- **Logging**: Windows Event Log, file logging
 
-#### Shutdown Methods
-LiteSRV supports three shutdown methods:
-1. `command` - Executes a shutdown command
-2. `winmessage` - Sends WM_CLOSE to application windows
-3. `kill` - Forces process termination (TerminateProcess)
+## Development Status
 
-#### Environment Control
-- Set custom environment variables
-- Map network and local drives
-- Define startup directory
-- Control process priority
+This project is **Work in Progress** and **not actively developed**. Core functionality is stable but some advanced features may be incomplete. Moderate contributions are accepted for improvements and bug fixes.
 
-#### Process Management
-- Automatic restart on crash
-- Configurable restart intervals
-- Process status monitoring
-- Startup delay support
+## System Requirements
 
-### Limitations and Requirements
+- Windows 7 or later
+- Administrative privileges for service installation
+- .NET Framework 4.5 or higher (for some components)
 
-- Service account needs appropriate permissions
-- Desktop interaction requires specific security settings
-- Network drive mapping requires stored credentials
-- No support for pausing/resuming services
-- Must connect to SCM within 1 second of startup
+## Best Practices
+
+### Service Configuration
+- Use descriptive service names and display names
+- Configure appropriate startup types for your requirements
+- Set proper service dependencies when needed
+- Use dedicated service accounts with minimal privileges
+
+### Application Compatibility
+- Ensure wrapped applications can run without user interaction
+- Handle Windows session changes appropriately
+- Implement proper shutdown procedures in wrapped applications
+- Avoid GUI elements in service mode
+
+### Security
+- Run services with least required privileges
+- Use dedicated service accounts rather than system accounts
+- Secure configuration files with appropriate permissions
+- Monitor service behavior and logs regularly
 
 ## Troubleshooting
 
-### Common Error Messages
-
-1. "Error 1067: The process terminated unexpectedly"
-   - Verify service name matches in configuration file and command line
-   - Check parameter case sensitivity (e.g., use -c not -C)
-   - Ensure full pathnames in startup directive
-   - Validate configuration file structure
-
-2. "Error 2140: An internal Windows NT error occurred"
-   - Usually appears when starting service from Control Panel
-   - Check event log for detailed error message
-   - Verify all file paths and permissions
-
-3. "Invalid parameter was supplied"
-   - Check configuration file syntax
-   - Verify all required directives present
-   - Ensure startup directive is in lowercase
-
-4. "Exception 6 in Class 'CmdRunner'"
-   - Invalid parameter supplied
-   - Check startup directive exists
-   - Verify service name spelling
-
 ### Common Issues
+- **Service Won't Start**: Check executable path and permissions
+- **Access Denied**: Verify service account permissions
+- **Application Crashes**: Review application logs and compatibility
+- **Resource Issues**: Monitor memory and CPU usage
 
-1. Service fails to start
-   - Check service account permissions
-   - Verify all paths exist
-   - Check the event log for errors
-   - Test in command mode first
-
-2. Service stops unexpectedly
-   - Enable debug logging with -d 2
-   - Check application error handling
-   - Consider using auto_restart=y
-   - Review startup_delay setting
-
-3. Network drives unavailable
-   - Service must run as named user, not LocalSystem
-   - Verify service account has network access
-   - Check stored credentials
-   - Ensure network is available before mapping
-
-4. Shutdown hangs
-   - Try different shutdown_method values
-   - Set appropriate timeout values
-   - Check application cleanup routines
-   - Consider using kill method as last resort
-
-### Debug Logging
-
-Enable debug logging with:
-```
-debug=2
-debug_out=c:\logs\service.log
-```
-
-Or command line:
-```
--d 2 -o c:\logs\service.log
-```
-
-Debug levels:
-- 0: Errors only
-- 1: Errors and information
-- 2: All debug messages
-
-## Support
-
-For issues and questions:
-1. Check the Windows Event Log
-2. Enable debug logging
-3. Test in command mode
-4. Verify configuration file syntax
+### Debugging
+- Enable verbose logging in configuration
+- Check Windows Event Log for service-related events
+- Use service status commands to monitor state
+- Review wrapped application logs
 
 ## License
 
-This software is provided under [Unlicence](LICENSE) terms.
+This software is released under [The Unlicense](LICENSE) - public domain.
 
-## Version History
+---
 
-1.01 - Current version
-- Initial public release
-- Complete service wrapper functionality
-- Environment and drive mapping support
-- Multiple shutdown methods
-- Logging capabilities
+*LiteSrv simplifies the process of running applications as Windows services with professional service management capabilities.*
+
+## 🌟 Part of LiteSuite
+
+This tool is part of **[LiteSuite](https://github.com/svtica/LiteSuite)** - a comprehensive collection of lightweight Windows administration tools.
+
+### Other Tools in the Suite:
+- **[LiteTask](https://github.com/svtica/LiteTask)** - Advanced Task Scheduler Alternative  
+- **[LitePM](https://github.com/svtica/LitePM)** - Process Manager with System Monitoring
+- **[LiteDeploy](https://github.com/svtica/LiteDeploy)** - Network Deployment and Management
+- **[LiteRun](https://github.com/svtica/LiteRun)** - Remote Command Execution Utility
+- **[LiteSrv](https://github.com/svtica/LiteSrv)** - Windows Service Wrapper
+
+### 📦 Download the Complete Suite
+Get all tools in one package: **[LiteSuite Releases](https://github.com/svtica/LiteSuite/releases/latest)**
+
+---
+
+*LiteSuite - Professional Windows administration tools for modern IT environments.*
