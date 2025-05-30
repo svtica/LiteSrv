@@ -1,7 +1,5 @@
 # LiteSrv
 
-[![GitHub release](https://img.shields.io/github/v/release/svtica/LiteSrv)](https://github.com/svtica/LiteSrv/releases/latest)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/svtica/LiteSrv/build-and-release.yml)](https://github.com/svtica/LiteSrv/actions)
 [![Part of LiteSuite](https://img.shields.io/badge/part%20of-LiteSuite-blue)](https://github.com/svtica/LiteSuite)
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-green.svg)](LICENSE)
 
